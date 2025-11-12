@@ -312,6 +312,8 @@ static inline void st_uart1_put(uint8_t b)
 {
     while (UART1_FR_R & UART_FR_TXFF);
     UART1_DR_R = b;
+//    waitMicrosecond(1000);
+
 }
 
 // Send one packetized command
@@ -342,8 +344,8 @@ static void handle_cmd_packet(const char *msg32)
 {
     // Commands you already use: "FH","BH","RH","LH","ST"
     // Tune these speeds as you prefer
-    const uint8_t SPEED_HALF = 64;   // ~50%
-    const uint8_t SPEED_FULL = 127;  // 100%
+    const uint8_t SPEED_HALF = 20;   // ~50%
+    const uint8_t SPEED_FULL = 20;  // 100%
 
     char a = msg32[0];
     char b = msg32[1];
@@ -550,8 +552,9 @@ void processSerial()
 
 void processSerial_Packet(void)
 {
-    const uint8_t SPEED_FULL = 127;   // 100%
-    const uint8_t SPEED_HALF = 64;    // ~50%
+    const uint8_t SPEED_FULL = 20;   // 100%
+    const uint8_t SPEED_FULL_Right = 20;
+    const uint8_t SPEED_HALF = 20;    // ~50%
 
     bool end;
     char c;
@@ -584,13 +587,13 @@ void processSerial_Packet(void)
         token = strtok(NULL, " ");
         if (token && strcmp(token, "Full") == 0)
         {
-            st_m1_forward(SPEED_FULL);
+            st_m1_forward(SPEED_FULL_Right);
             st_m2_forward(SPEED_FULL);
             setRgbColor(0, 0, 1023);
         }
         else if (token && strcmp(token, "Half") == 0)
         {
-            st_m1_forward(SPEED_HALF);
+            st_m1_forward(SPEED_FULL_Right);
             st_m2_forward(SPEED_HALF);
             setRgbColor(0, 0, 200);
         }
@@ -603,13 +606,13 @@ void processSerial_Packet(void)
         token = strtok(NULL, " ");
         if (token && strcmp(token, "Full") == 0)
         {
-            st_m1_reverse(SPEED_FULL);
+            st_m1_reverse(SPEED_FULL_Right);
             st_m2_reverse(SPEED_FULL);
             setRgbColor(1023, 0, 0);
         }
         else if (token && strcmp(token, "Half") == 0)
         {
-            st_m1_reverse(SPEED_HALF);
+            st_m1_reverse(SPEED_FULL_Right);
             st_m2_reverse(SPEED_HALF);
             setRgbColor(200, 0, 0);
         }
@@ -622,13 +625,13 @@ void processSerial_Packet(void)
         token = strtok(NULL, " ");
         if (token && strcmp(token, "Full") == 0)
         {
-            st_m1_forward(SPEED_FULL);
+            st_m1_forward(SPEED_FULL_Right);
             st_m2_reverse(SPEED_FULL);
             setRgbColor(0, 1023, 0);
         }
         else if (token && strcmp(token, "Half") == 0)
         {
-            st_m1_forward(SPEED_HALF);
+            st_m1_forward(SPEED_FULL_Right);
             st_m2_reverse(SPEED_HALF);
             setRgbColor(0, 200, 0);
         }
@@ -641,13 +644,13 @@ void processSerial_Packet(void)
         token = strtok(NULL, " ");
         if (token && strcmp(token, "Full") == 0)
         {
-            st_m1_reverse(SPEED_FULL);
+            st_m1_reverse(SPEED_FULL_Right);
             st_m2_forward(SPEED_FULL);
             setRgbColor(1023, 1023, 1023);
         }
         else if (token && strcmp(token, "Half") == 0)
         {
-            st_m1_reverse(SPEED_HALF);
+            st_m1_reverse(SPEED_FULL_Right);
             st_m2_forward(SPEED_HALF);
             setRgbColor(200, 200, 200);
         }
@@ -767,11 +770,14 @@ int main(void)
     {
 
 
-        processSerial();
-//        processSerial_Packet();   //PACKET MODE***********************
+//        processSerial();
+        processSerial_Packet();   //PACKET MODE***********************
         // try both pipes (your NRF24_Rx config enables P1; check both to be safe)
         have1 = isDataAvailable(1);
         have0 = isDataAvailable(0);
+
+        st_send(16, 5);
+
 
         if (have1 || have0)
         {
@@ -785,9 +791,9 @@ int main(void)
             // Optional: print for debug on UART0
             putsUart0((char*)rx);
 
-            handle_cmd((char*)rx);
+//            handle_cmd((char*)rx);
 
-//            handle_cmd_packet((char*)rx);      //PACKET MODE*************
+            handle_cmd_packet((char*)rx);      //PACKET MODE*************
         }
     }
 }
